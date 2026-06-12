@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -13,8 +12,6 @@ from app.schemas import (
     AlertResponse,
     MlFeatures,
     GrowthPredictionResponse,
-    PredictionRequest,
-    TrainResponse,
 )
 from app.auth import get_current_user
 from app.services.growth_analysis_service import (
@@ -292,45 +289,3 @@ def predict_growth(
         confidenceScore=pred.confidence_score,
         createdAt=pred.created_at,
     )
-
-
-@router.post("/ml/train", response_model=TrainResponse)
-def train_models(
-    payload: PredictionRequest = None,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    if payload is None:
-        payload = PredictionRequest()
-
-    import json
-
-    results = {"datasetRows": 0, "weightModel": "", "heightModel": "", "weightMAE": None, "weightRMSE": None, "weightR2": None, "heightMAE": None, "heightRMSE": None, "heightR2": None}
-
-    if payload.generateTraining:
-        from scripts.generate_training_dataset import build_dataset
-        df = build_dataset(db)
-        results["datasetRows"] = len(df)
-
-    if payload.trainModels:
-        from services.ml.train_growth_model import train
-        train()
-
-        models_dir = Path(__file__).parent.parent.parent / "models"
-        weight_p = models_dir / "weight_model.pkl"
-        height_p = models_dir / "height_model.pkl"
-        results["weightModel"] = str(weight_p)
-        results["heightModel"] = str(height_p)
-
-        metrics_path = models_dir / "metrics.json"
-        if metrics_path.exists():
-            with open(metrics_path) as f:
-                m = json.load(f)
-                results["weightMAE"] = m.get("weight", {}).get("mae")
-                results["weightRMSE"] = m.get("weight", {}).get("rmse")
-                results["weightR2"] = m.get("weight", {}).get("r2")
-                results["heightMAE"] = m.get("height", {}).get("mae")
-                results["heightRMSE"] = m.get("height", {}).get("rmse")
-                results["heightR2"] = m.get("height", {}).get("r2")
-
-    return TrainResponse(**results)

@@ -236,18 +236,4 @@ class GrowthPredictionResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class PredictionRequest(BaseModel):
-    generateTraining: bool = True
-    trainModels: bool = True
 
-
-class TrainResponse(BaseModel):
-    datasetRows: int
-    weightModel: str
-    heightModel: str
-    weightMAE: Optional[float] = None
-    weightRMSE: Optional[float] = None
-    weightR2: Optional[float] = None
-    heightMAE: Optional[float] = None
-    heightRMSE: Optional[float] = None
-    heightR2: Optional[float] = None
