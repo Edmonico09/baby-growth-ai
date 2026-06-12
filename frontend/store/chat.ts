@@ -83,7 +83,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   deleteConversation: async (id, childId) => {
-    await chatApi.deleteConversation(id)
+    try {
+      await chatApi.deleteConversation(id)
+    } catch {
+      // If 404, conversation was already deleted — proceed locally
+    }
     const state = get()
     const updated = state.conversations.filter((c) => c.id !== id)
     const wasActive = state.activeConversationId === id

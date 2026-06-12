@@ -38,7 +38,10 @@ export default function GrowthPage() {
 
   useEffect(() => {
     if (child && records.length > 0) {
-      growthApi.getPredictions(child.id).then(setPredictions).catch(() => {})
+      setPredictionsLoading(true)
+      growthApi.getPredictions(child.id).then(setPredictions).catch((e) => {
+        setPredictionsError(e.response?.data?.detail || e.message || 'Failed to load predictions')
+      }).finally(() => setPredictionsLoading(false))
     }
   }, [child, records])
 
@@ -196,7 +199,7 @@ export default function GrowthPage() {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-2">
           <GrowthChart
             data={chartData}
             type="weight"

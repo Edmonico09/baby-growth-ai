@@ -83,7 +83,7 @@ export default function AssistantPage() {
               <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20">
                 <MessageCircle className="h-7 w-7 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold tracking-tight">How can I help you today?</h1>
+              <h1 className="text-xl font-bold tracking-tight">How can I help you today?</h1>
               <p className="text-base text-muted-foreground max-w-md mx-auto">
                 Ask anything about your child&apos;s health, growth, nutrition, or development.
               </p>
@@ -95,10 +95,10 @@ export default function AssistantPage() {
                   key={prompt.id}
                   onClick={() => handlePrompt(prompt.text)}
                   disabled={sending}
-                  className="group flex flex-col items-start gap-2 rounded-xl border border-border bg-card p-4 text-left text-base transition-all hover:border-primary/30 hover:bg-primary/[0.03] hover:shadow-sm disabled:opacity-50 font-heading"
+                  className="group flex flex-col items-start gap-2 rounded-xl border border-border bg-card p-5 text-left text-base transition-all hover:border-primary/30 hover:bg-primary/[0.03] hover:shadow-sm disabled:opacity-50 font-heading"
                 >
                   <span className="leading-relaxed text-foreground font-heading">{prompt.text}</span>
-                  <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors font-heading">Ask now &rarr;</span>
+                  <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors font-heading">Ask now &rarr;</span>
                 </button>
               ))}
             </div>
@@ -107,7 +107,7 @@ export default function AssistantPage() {
 
         <div className="px-4 pb-6">
           <div className="max-w-xl mx-auto">
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm">
+            <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -115,14 +115,14 @@ export default function AssistantPage() {
                 placeholder="Ask me anything..."
                 disabled={sending}
                 rows={1}
-                className="flex-1 bg-transparent px-2 py-1.5 text-base text-foreground placeholder:text-muted-foreground focus:outline-none resize-none disabled:opacity-50 font-heading"
+                className="flex-1 bg-transparent px-2 text-base text-foreground placeholder:text-muted-foreground focus:outline-none resize-none disabled:opacity-50 font-heading"
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || sending}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
               >
-                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
+                {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}
               </button>
             </div>
           </div>

@@ -164,7 +164,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
                   <button
                     key={prompt.id}
                     onClick={() => handlePromptSelect(prompt.text)}
-                    className="rounded-lg bg-muted/50 px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-primary/10 hover:text-primary font-heading"
+                    className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-foreground transition-colors hover:bg-primary/10 hover:text-primary font-heading"
                   >
                     {prompt.text}
                   </button>
@@ -174,7 +174,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
           )}
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm">
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm">
           <textarea
             ref={inputRef}
             value={input}
@@ -183,14 +183,14 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
             placeholder="Ask me anything..."
             disabled={loading || !childId || !conversationId}
             rows={1}
-            className="flex-1 bg-transparent px-2 py-1.5 text-base text-foreground placeholder:text-muted-foreground focus:outline-none resize-none disabled:opacity-50 font-heading"
+            className="flex-1 bg-transparent px-2 text-base text-foreground placeholder:text-muted-foreground focus:outline-none resize-none disabled:opacity-50 font-heading"
           />
           <button
             onClick={handleSend}
             disabled={loading || !childId || !conversationId || !input.trim()}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}
           </button>
         </div>
       </div>
