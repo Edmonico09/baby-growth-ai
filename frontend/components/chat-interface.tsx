@@ -62,7 +62,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
             </div>
             <div className="space-y-2">
               <h2 className="text-xl font-bold text-foreground">AI Health Assistant</h2>
-              <p className="text-sm text-muted-foreground max-w-sm">
+              <p className="text-base text-muted-foreground max-w-sm">
                 Your conversation is ready. Ask a question or choose a suggestion below.
               </p>
             </div>
@@ -74,7 +74,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
                 {msg.role === 'user' ? (
                   <div className="flex justify-end">
                     <div className="max-w-[75%] rounded-2xl bg-primary/10 px-4 py-3 text-primary shadow-sm">
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-base leading-relaxed whitespace-pre-wrap font-heading">{msg.content}</p>
                     </div>
                   </div>
                 ) : (
@@ -90,8 +90,8 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
                             strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
                             ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1 my-2">{children}</ol>,
                             ul: ({ children }) => <ul className="list-disc pl-5 space-y-1 my-2">{children}</ul>,
-                            li: ({ children }) => <li className="text-sm leading-relaxed text-foreground">{children}</li>,
-                            p: ({ children }) => <p className="text-sm leading-relaxed text-foreground mb-2 last:mb-0">{children}</p>,
+                            li: ({ children }) => <li className="text-base leading-relaxed text-foreground font-heading">{children}</li>,
+                            p: ({ children }) => <p className="text-base leading-relaxed text-foreground mb-2 last:mb-0 font-heading">{children}</p>,
                           }}
                         >
                           {msg.content}
@@ -100,7 +100,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
                       {msg.contextUsed && msg.contextUsed.length > 0 && (
                         <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-muted/50 px-3 py-1.5">
                           <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground" />
-                          <p className="text-xs text-muted-foreground leading-relaxed">
+                          <p className="text-xs text-muted-foreground leading-relaxed font-heading">
                             Based on: {msg.contextUsed.join(' \u00B7 ')}
                           </p>
                         </div>
@@ -130,7 +130,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
       {error && (
         <div className="flex items-start gap-2 px-4 py-3 mx-2 mb-2 rounded-lg bg-destructive/10 border border-destructive/20">
           <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-destructive" />
-          <p className="flex-1 text-sm text-destructive">{error}</p>
+          <p className="flex-1 text-base text-destructive font-heading">{error}</p>
           <button
             onClick={clearError}
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -147,7 +147,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
             onClick={() => setShowPrompts((v) => !v)}
             className="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left hover:bg-muted/30 transition-colors"
           >
-            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <span className="flex items-center gap-2 text-base font-medium text-foreground font-heading">
               <Lightbulb className="h-4 w-4 text-primary" />
               Quick Questions
             </span>
@@ -164,7 +164,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
                   <button
                     key={prompt.id}
                     onClick={() => handlePromptSelect(prompt.text)}
-                    className="rounded-lg bg-muted/50 px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    className="rounded-lg bg-muted/50 px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-primary/10 hover:text-primary font-heading"
                   >
                     {prompt.text}
                   </button>
@@ -183,7 +183,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
             placeholder="Ask me anything..."
             disabled={loading || !childId || !conversationId}
             rows={1}
-            className="flex-1 bg-transparent px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none disabled:opacity-50"
+            className="flex-1 bg-transparent px-2 py-1.5 text-base text-foreground placeholder:text-muted-foreground focus:outline-none resize-none disabled:opacity-50 font-heading"
           />
           <button
             onClick={handleSend}

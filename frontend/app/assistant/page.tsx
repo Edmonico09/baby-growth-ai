@@ -68,7 +68,7 @@ export default function AssistantPage() {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="text-center space-y-3">
           <h1 className="text-2xl font-bold">AI Health Assistant</h1>
-          <p className="text-sm text-muted-foreground">Please set up a child profile first</p>
+          <p className="text-base text-muted-foreground">Please set up a child profile first</p>
         </div>
       </div>
     )
@@ -84,7 +84,7 @@ export default function AssistantPage() {
                 <MessageCircle className="h-7 w-7 text-primary" />
               </div>
               <h1 className="text-2xl font-bold tracking-tight">How can I help you today?</h1>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              <p className="text-base text-muted-foreground max-w-md mx-auto">
                 Ask anything about your child&apos;s health, growth, nutrition, or development.
               </p>
             </div>
@@ -95,10 +95,10 @@ export default function AssistantPage() {
                   key={prompt.id}
                   onClick={() => handlePrompt(prompt.text)}
                   disabled={sending}
-                  className="group flex flex-col items-start gap-2 rounded-xl border border-border bg-card p-4 text-left text-sm transition-all hover:border-primary/30 hover:bg-primary/[0.03] hover:shadow-sm disabled:opacity-50"
+                  className="group flex flex-col items-start gap-2 rounded-xl border border-border bg-card p-4 text-left text-base transition-all hover:border-primary/30 hover:bg-primary/[0.03] hover:shadow-sm disabled:opacity-50 font-heading"
                 >
-                  <span className="leading-relaxed text-foreground">{prompt.text}</span>
-                  <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">Ask now &rarr;</span>
+                  <span className="leading-relaxed text-foreground font-heading">{prompt.text}</span>
+                  <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors font-heading">Ask now &rarr;</span>
                 </button>
               ))}
             </div>
@@ -115,7 +115,7 @@ export default function AssistantPage() {
                 placeholder="Ask me anything..."
                 disabled={sending}
                 rows={1}
-                className="flex-1 bg-transparent px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none disabled:opacity-50"
+                className="flex-1 bg-transparent px-2 py-1.5 text-base text-foreground placeholder:text-muted-foreground focus:outline-none resize-none disabled:opacity-50 font-heading"
               />
               <button
                 onClick={handleSend}
