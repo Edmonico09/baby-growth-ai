@@ -125,7 +125,7 @@ export function Sidebar() {
           </button>
         )}
 
-        <nav className="flex-1 space-y-1 overflow-y-auto">
+        <nav className="flex-1 space-y-2 overflow-y-auto">
           {links.map((link) => {
             const Icon = link.icon
             const isActive = pathname === link.href
