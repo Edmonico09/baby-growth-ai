@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
-import { Send, Loader2, XCircle, Lightbulb, ChevronDown, ChevronUp, ArrowUp, Info } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import {
+  Loader2, XCircle, Lightbulb, ChevronDown, ChevronUp, ArrowUp, Info, Bot,
+} from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Button } from '@/components/ui/button'
 import { useChatStore } from '@/store/chat'
-import { QuickPrompts } from './quick-prompts'
 
 interface ChatInterfaceProps {
   childId: string
@@ -26,6 +26,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
   const [input, setInput] = useState('')
   const [showPrompts, setShowPrompts] = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -49,36 +50,37 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
     }
   }
 
+  const hasMessages = messages.length > 0
+
   return (
-    <div className="flex h-[600px] items-center flex-col relative">
-      {/* Messages area - scrolls independently */}
-      <div className="flex-1 overflow-y-auto space-y-4 p-2">
-        {messages.length === 0 && !loading ? (
-          <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary text-lg font-semibold">
-              AI
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto px-2 py-4 space-y-4 scroll-smooth">
+        {!hasMessages && !loading ? (
+          <div className="flex h-full flex-col items-center justify-center gap-4 text-center px-4">
+            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20">
+              <Bot className="h-7 w-7 text-primary" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">AI Health Assistant</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Get expert advice about your child&apos;s health and development
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-foreground">AI Health Assistant</h2>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                Your conversation is ready. Ask a question or choose a suggestion below.
               </p>
             </div>
           </div>
         ) : (
           <>
             {messages.map((msg) => (
-              <div key={msg.id}>
+              <div key={msg.id} className="px-1">
                 {msg.role === 'user' ? (
                   <div className="flex justify-end">
-                    <div className="max-w-[70%] rounded-2xl bg-primary/10 px-4 py-2.5 text-primary">
+                    <div className="max-w-[75%] rounded-2xl bg-primary/10 px-4 py-3 text-primary shadow-sm">
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex gap-2.5">
-                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                      AI
+                  <div className="flex gap-3">
+                    <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-sm">
+                      <Bot className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0 pt-0.5">
                       <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -99,7 +101,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
                         <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-muted/50 px-3 py-1.5">
                           <Info className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-muted-foreground" />
                           <p className="text-xs text-muted-foreground leading-relaxed">
-                            Based on: {msg.contextUsed.join(' · ')}
+                            Based on: {msg.contextUsed.join(' \u00B7 ')}
                           </p>
                         </div>
                       )}
@@ -109,12 +111,14 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
               </div>
             ))}
             {loading && (
-              <div className="flex gap-2.5">
-                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                  AI
+              <div className="flex gap-3 px-1">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 </div>
-                <div className="pt-1.5">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <div className="flex items-center gap-1.5 pt-2">
+                  <div className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
+                  <div className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
+                  <div className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
                 </div>
               </div>
             )}
@@ -124,7 +128,7 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 px-2 py-3 bg-destructive/5 rounded-lg mt-2">
+        <div className="flex items-start gap-2 px-4 py-3 mx-2 mb-2 rounded-lg bg-destructive/10 border border-destructive/20">
           <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-destructive" />
           <p className="flex-1 text-sm text-destructive">{error}</p>
           <button
@@ -137,54 +141,57 @@ export function ChatInterface({ childId, conversationId, handlePromptSelect }: C
         </div>
       )}
 
-      {/* Bottom area - quick prompts (collapsible) + input, always visible */}
-      <div className='fixed bottom-3 transform p-5'>
-        <div className="pt-3 space-y-2">
-          <div className="rounded-lg border border-border bg-card">
-            <button
-              onClick={() => setShowPrompts((v) => !v)}
-              className="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left"
-            >
-              <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Lightbulb className="h-4 w-4 text-primary" />
-                Quick Questions
-              </span>
-              {showPrompts ? (
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <ChevronUp className="h-4 w-4 text-muted-foreground" />
-              )}
-            </button>
-            {showPrompts && (
-              <div className="px-4 pb-4">
-                <QuickPrompts
-                  prompts={PROMPTS}
-                  onSelect={handlePromptSelect}
-                  hideTitle
-                />
-              </div>
+      <div className="px-2 pb-4 pt-2 space-y-2">
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <button
+            onClick={() => setShowPrompts((v) => !v)}
+            className="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left hover:bg-muted/30 transition-colors"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Lightbulb className="h-4 w-4 text-primary" />
+              Quick Questions
+            </span>
+            {showPrompts ? (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
             )}
-          </div>
-  
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1.5 focus-within:ring-2 focus-within:ring-primary transition-shadow">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask me anything about your child's health..."
-              disabled={loading || !childId || !conversationId}
-              rows={1}
-              className="flex-1 h-20 resize-none bg-transparent px-3 py-2 text-foreground placeholder-muted-foreground focus:outline-none disabled:opacity-50"
-            />
-            <Button
-              onClick={handleSend}
-              size="icon"
-              disabled={loading || !childId || !conversationId}
-              className="rounded-full bg-primary hover:bg-primary/90 flex-shrink-0"
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
-            </Button>
-          </div>
+          </button>
+          {showPrompts && (
+            <div className="px-4 pb-4">
+              <div className="flex flex-wrap gap-2">
+                {PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt.id}
+                    onClick={() => handlePromptSelect(prompt.text)}
+                    className="rounded-lg bg-muted/50 px-3 py-1.5 text-xs text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                  >
+                    {prompt.text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all shadow-sm">
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask me anything..."
+            disabled={loading || !childId || !conversationId}
+            rows={1}
+            className="flex-1 bg-transparent px-2 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none disabled:opacity-50"
+          />
+          <button
+            onClick={handleSend}
+            disabled={loading || !childId || !conversationId || !input.trim()}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
+          </button>
         </div>
       </div>
     </div>

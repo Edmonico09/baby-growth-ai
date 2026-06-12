@@ -32,7 +32,15 @@ OUTPUT_DIR = Path.home() / "Documents" / "report"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ─── Load real project metrics ────────────────────────────────────
-METRICS_PATH = PROJECT_ROOT / "backend" / "models" / "metrics.json"
+METRICS_PATH = PROJECT_ROOT / "models" / "metrics.json"
+DATASET_PATH = PROJECT_ROOT / "training_growth_dataset.csv"
+
+# Count training samples
+if DATASET_PATH.exists():
+    with open(DATASET_PATH) as f:
+        TRAIN_SAMPLES = sum(1 for _ in f) - 1  # exclude header
+else:
+    TRAIN_SAMPLES = 11666
 if METRICS_PATH.exists():
     with open(METRICS_PATH) as f:
         METRICS = json.load(f)
@@ -75,37 +83,88 @@ def _draw_arrow(ax, x1, y1, x2, y2, color="#555"):
     ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
                 arrowprops=dict(arrowstyle="->", color=color, lw=1.5))
 
+def _draw_tier_label(ax, x, y, w, h, text, color="#333"):
+    """Draw a vertical tier label on the left side."""
+    rect = mpatches.FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.08",
+                                     facecolor=color, edgecolor="none", alpha=0.15)
+    ax.add_patch(rect)
+    ax.text(x + w / 2, y + h / 2, text, ha="center", va="center",
+            fontsize=9, fontweight="bold", color=color, rotation=90)
+
+def _draw_icon_box(ax, x, y, w, h, icon, title, subtitle, color="#2563eb", text_color="white"):
+    """Draw a box with icon prefix, title, and subtitle."""
+    rect = mpatches.FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.06",
+                                     facecolor=color, edgecolor="none", alpha=0.9)
+    ax.add_patch(rect)
+    # Icon circle
+    circle = plt.Circle((x + 0.25, y + h - 0.25), 0.15, color="white", alpha=0.3)
+    ax.add_patch(circle)
+    ax.text(x + 0.25, y + h - 0.25, icon, ha="center", va="center",
+            fontsize=8, fontweight="bold", color=text_color)
+    # Title
+    ax.text(x + w / 2, y + h * 0.6, title, ha="center", va="center",
+            fontsize=10, fontweight="bold", color=text_color)
+    # Subtitle
+    ax.text(x + w / 2, y + h * 0.25, subtitle, ha="center", va="center",
+            fontsize=7, color=text_color, alpha=0.85)
+
+def _draw_curved_arrow(ax, x1, y1, x2, y2, color="#555", label=""):
+    """Draw an arrow with optional label."""
+    ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
+                arrowprops=dict(arrowstyle="->", color=color, lw=1.8, connectionstyle="arc3,rad=0.1"))
+    if label:
+        mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+        ax.text(mx, my + 0.1, label, ha="center", va="bottom",
+                fontsize=5.5, color=color, fontstyle="italic")
+
 def generate_architecture_diagram(path: Path):
-    fig, ax = plt.subplots(1, 1, figsize=(12, 6))
-    ax.set_xlim(0, 12)
-    ax.set_ylim(0, 6)
+    fig, ax = plt.subplots(1, 1, figsize=(13, 7))
+    ax.set_xlim(0, 13)
+    ax.set_ylim(0, 7)
     ax.axis("off")
 
-    # Frontend
-    _draw_box(ax, 4.5, 4.5, 3, 1, "Frontend\nNext.js 16 + React 19", "#2563eb")
-    _draw_box(ax, 4.5, 3.2, 3, 0.8, "Zustand Store\nAxios HTTP Client", "#60a5fa")
+    # Background shading for tiers
+    ax.axhspan(4.5, 7.0, xmin=0.05, xmax=0.95, facecolor="#2563eb", alpha=0.04)
+    ax.axhspan(1.8, 4.5, xmin=0.05, xmax=0.95, facecolor="#059669", alpha=0.04)
+    ax.axhspan(0, 1.8, xmin=0.05, xmax=0.95, facecolor="#7c3aed", alpha=0.04)
 
-    # Backend
-    _draw_box(ax, 4.5, 1.6, 3, 1, "Backend API\nFastAPI (Python)", "#059669")
-    _draw_box(ax, 4.5, 0.5, 3, 0.8, "Routers · Services\nSQLAlchemy ORM", "#34d399")
+    # Tier labels
+    _draw_tier_label(ax, 0.1, 5.0, 0.4, 1.6, "PRESENTATION", "#2563eb")
+    _draw_tier_label(ax, 0.1, 2.2, 0.4, 2.2, "APPLICATION", "#059669")
+    _draw_tier_label(ax, 0.1, 0.2, 0.4, 1.6, "DATA & AI", "#7c3aed")
 
-    # Database
-    _draw_box(ax, 0.5, 1, 3, 1.5, "Database\nSQLite / PostgreSQL\n10 tables", "#d97706")
+    # ── Tier 1: Frontend ──
+    _draw_icon_box(ax, 1.0, 5.0, 2.8, 1.5, "W", "Web App", "Next.js 16 + React 19", "#2563eb")
+    _draw_icon_box(ax, 4.2, 5.0, 2.5, 1.5, "S", "State & API", "Zustand + Axios", "#3b82f6")
+    _draw_icon_box(ax, 7.1, 5.0, 2.5, 1.5, "C", "Charts & UI", "Recharts · Tailwind", "#60a5fa")
+    _draw_icon_box(ax, 10.0, 5.0, 2.5, 1.5, "U", "AI Chat", "LLM Conversation UI", "#93c5fd")
 
-    # ML
-    _draw_box(ax, 8.5, 0.5, 3, 1.5, "Machine Learning\nRandomForest\n.pkl models", "#7c3aed")
+    # ── Tier 2: Backend ──
+    _draw_icon_box(ax, 1.0, 2.8, 2.8, 1.5, "A", "Auth Service", "JWT · Register/Login", "#059669")
+    _draw_icon_box(ax, 4.2, 2.8, 2.5, 1.5, "G", "Growth Engine", "Z-scores · Percentiles", "#10b981")
+    _draw_icon_box(ax, 7.1, 2.8, 2.5, 1.5, "M", "ML Predictor", "RandomForest Inference", "#34d399")
+    _draw_icon_box(ax, 10.0, 2.8, 2.5, 1.5, "L", "LLM Gateway", "Groq · Llama 3.1 8B", "#6ee7b7")
 
-    # LLM
-    _draw_box(ax, 8.5, 3.5, 3, 1, "LLM Service\nGroq / OpenAI\nLlama 3.1", "#dc2626")
+    # Backend core box spanning the layer
+    _draw_box(ax, 1.0, 2.2, 11.5, 0.5, "FastAPI Core · SQLAlchemy ORM · Routers · Services · Celery Tasks",
+              "#047857", fontsize=7.5)
 
-    # Arrows
-    _draw_arrow(ax, 6, 4.5, 6, 4.0)  # frontend → backend
-    _draw_arrow(ax, 6, 3.2, 6, 2.6)  # zustand → API
-    _draw_arrow(ax, 3.5, 1.5, 4.5, 1.5)  # DB → backend
-    _draw_arrow(ax, 6, 1.6, 6, 0.5)  # backend → ML
-    _draw_arrow(ax, 9, 3.5, 9, 2.0)  # ML → LLM? No
-    _draw_arrow(ax, 10, 1.5, 10, 3.5)  # ML → LLM
-    _draw_arrow(ax, 7.5, 3.5, 7.5, 2.6)  # LLM → backend
+    # ── Tier 3: Data & ML ──
+    _draw_icon_box(ax, 1.0, 0.3, 3.5, 1.3, "D", "Database", "SQLite (dev) · PostgreSQL (prod)\n11 tables · Alembic migrations", "#d97706")
+    _draw_icon_box(ax, 5.0, 0.3, 3.5, 1.3, "M", "ML Models", "Weight (R²=0.996) · Height (R²=0.996)\n.pkl files · joblib serialized", "#7c3aed")
+    _draw_icon_box(ax, 9.0, 0.3, 3.5, 1.3, "W", "WHO References", "LMS parameters · 4 ref tables\n206 rows · 0–24 months", "#0891b2")
+
+    # Arrows — data flow
+    _draw_arrow(ax, 2.4, 5.0, 2.4, 4.3)  # Web → Backend
+    _draw_arrow(ax, 5.45, 5.0, 5.45, 4.3)  # State → Backend
+    _draw_arrow(ax, 8.35, 5.0, 8.35, 4.3)  # Charts → Backend
+    _draw_arrow(ax, 11.25, 5.0, 11.25, 4.3)  # Chat → LLM gateway
+
+    _draw_arrow(ax, 2.4, 2.2, 2.4, 1.6)  # Auth → DB
+    _draw_arrow(ax, 2.75, 2.2, 8.75, 1.6)  # Backend core → ML models
+    _draw_arrow(ax, 2.75, 2.2, 10.75, 1.6)  # Backend core → WHO refs
+    _draw_arrow(ax, 10.75, 1.6, 10.75, 2.2)  # WHO refs → Backend
+    _draw_arrow(ax, 8.75, 1.6, 8.75, 2.2)  # ML → Backend
 
     fig.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
@@ -156,7 +215,7 @@ def generate_ml_pipeline_diagram(path: Path):
     boxes = [
         (0.5, 2, 2.5, 1.2, "WHO LMS\nReference Data\n(412 rows)", "#0891b2"),
         (3.5, 2, 2.5, 1.2, "Synthetic Children\nGenerator\n(500 children)", "#7c3aed"),
-        (6.5, 2, 2.5, 1.2, "Training Dataset\nSliding Window\n(11,666 rows)", "#d97706"),
+        (6.5, 2, 2.5, 1.2, f"Training Dataset\nSliding Window\n({TRAIN_SAMPLES:,} rows)", "#d97706"),
         (9.5, 2, 2.5, 1.2, "RandomForest\nRegressor\n(300 trees)", "#dc2626"),
     ]
 
@@ -212,25 +271,60 @@ def generate_workflow_diagram(path: Path):
     print(f"  Diagram saved: {path}")
 
 def generate_prediction_chart(path: Path):
+    import joblib
+    import pandas as pd
+
+    weight_model_path = PROJECT_ROOT / "models" / "weight_model.pkl"
+    height_model_path = PROJECT_ROOT / "models" / "height_model.pkl"
+    dataset_path = PROJECT_ROOT / "training_growth_dataset.csv"
+
+    if not (weight_model_path.exists() and height_model_path.exists() and dataset_path.exists()):
+        print("  Skipping chart: model or dataset missing")
+        return
+
+    w_model = joblib.load(weight_model_path)
+    h_model = joblib.load(height_model_path)
+    df = pd.read_csv(dataset_path)
+
+    # Sample 2000 rows for faster plotting
+    if len(df) > 2000:
+        df = df.sample(n=2000, random_state=42)
+
+    # Build feature vector matching model expectations
+    df["sex_male"] = (df["sex"].str.lower() == "male").astype(int)
+    feature_cols = [
+        "age_months", "birth_weight", "birth_length", "current_weight",
+        "current_height", "current_head_circumference", "weight_percentile",
+        "height_percentile", "head_percentile", "weight_zscore", "height_zscore",
+        "head_zscore", "weight_gain_last_month", "height_gain_last_month", "sex_male",
+    ]
+    df = df.dropna(subset=feature_cols + ["target_weight_next_month", "target_height_next_month"])
+    X = df[feature_cols].values
+
+    pred_weight = w_model.predict(X)
+    pred_height = h_model.predict(X)
+    actual_weight = df["target_weight_next_month"].values
+    actual_height = df["target_height_next_month"].values
+
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))
 
-    # Simulated prediction vs actual
-    import numpy as np
-    np.random.seed(42)
-    actual_w = np.linspace(3, 15, 200)
-    pred_w = actual_w + np.random.normal(0, 0.14, 200)
-    actual_h = np.linspace(50, 95, 200)
-    pred_h = actual_h + np.random.normal(0, 0.54, 200)
-
-    axes[0].scatter(actual_w, pred_w, alpha=0.3, s=10, color="#2563eb")
-    axes[0].plot([2, 16], [2, 16], "r--", lw=1)
+    axes[0].scatter(actual_weight, pred_weight, alpha=0.3, s=10, color="#2563eb")
+    lims_w = [min(actual_weight.min(), pred_weight.min()) - 0.5,
+              max(actual_weight.max(), pred_weight.max()) + 0.5]
+    axes[0].plot(lims_w, lims_w, "r--", lw=1)
+    axes[0].set_xlim(lims_w)
+    axes[0].set_ylim(lims_w)
     axes[0].set_xlabel("Actual Weight (kg)")
     axes[0].set_ylabel("Predicted Weight (kg)")
     axes[0].set_title(f"Weight Model\nMAE={METRICS['weight']['mae']:.3f}  R²={METRICS['weight']['r2']:.3f}")
     axes[0].set_aspect("equal")
 
-    axes[1].scatter(actual_h, pred_h, alpha=0.3, s=10, color="#059669")
-    axes[1].plot([48, 98], [48, 98], "r--", lw=1)
+    axes[1].scatter(actual_height, pred_height, alpha=0.3, s=10, color="#059669")
+    lims_h = [min(actual_height.min(), pred_height.min()) - 0.5,
+              max(actual_height.max(), pred_height.max()) + 0.5]
+    axes[1].plot(lims_h, lims_h, "r--", lw=1)
+    axes[1].set_xlim(lims_h)
+    axes[1].set_ylim(lims_h)
     axes[1].set_xlabel("Actual Height (cm)")
     axes[1].set_ylabel("Predicted Height (cm)")
     axes[1].set_title(f"Height Model\nMAE={METRICS['height']['mae']:.3f}  R²={METRICS['height']['r2']:.3f}")
@@ -352,7 +446,7 @@ def generate_docx(diagrams: dict):
         "language models to provide comprehensive child growth monitoring and prediction. "
         "The system automatically calculates WHO z-scores and percentiles using the LMS method, generates "
         "rule-based alerts for abnormal growth patterns, and employs Random Forest models (R² > 0.996) "
-        "trained on 11,666 synthetic growth records to predict future weight and height. "
+        f"trained on {TRAIN_SAMPLES:,} synthetic growth records to predict future weight and height. "
         "A Groq-powered LLM interprets the data and delivers personalized guidance. "
         "The platform is built with a FastAPI backend, Next.js frontend, and supports both SQLite and "
         "PostgreSQL. Evaluation shows high prediction accuracy and positive user feedback on the AI-driven analysis."
@@ -433,13 +527,13 @@ def generate_docx(diagrams: dict):
         "The system uses SQLAlchemy ORM with SQLite for development and PostgreSQL for production. "
         f"The database contains {DB_STATS['users']} users, {DB_STATS['children']} children, "
         f"{DB_STATS['records']} growth records, {DB_STATS['alerts']} alerts, and "
-        f"{DB_STATS['predictions']} predictions across 10 tables."
+        f"{DB_STATS['predictions']} predictions across 11 tables."
     ))
 
     _add_heading(doc, "3.4 Machine Learning", 2)
     _add_para(doc, (
         "Two Random Forest models (300 trees, max depth 15) predict weight and height at 1-month and "
-        "3-month horizons. Training used 11,666 samples from 500 synthetic children. "
+        f"3-month horizons. Training used {TRAIN_SAMPLES:,} samples from 500 synthetic children. "
         "Models are serialized with joblib and loaded at inference time."
     ))
 
@@ -453,7 +547,7 @@ def generate_docx(diagrams: dict):
     # ── 4. DATABASE DESIGN ──
     _add_heading(doc, "4. Database Design", 1)
     _add_para(doc, (
-        "The database consists of 10 tables organized into three groups: user data, growth reference data, "
+        "The database consists of 11 tables organized into three groups: user data, growth reference data, "
         "and application data."
     ))
 
@@ -544,7 +638,7 @@ def generate_docx(diagrams: dict):
     _add_heading(doc, "6.3 Model Training", 2)
     _add_para(doc, (
         "Two RandomForestRegressor models (300 estimators, max depth 15, min_samples_leaf 5) were trained "
-        f"on {11666 - 1:,} samples (80:20 train-test split). The weight model predicts future weight in kg, "
+        f"on {TRAIN_SAMPLES:,} samples (80:20 train-test split, ~{int(TRAIN_SAMPLES * 0.8):,} train / ~{int(TRAIN_SAMPLES * 0.2):,} test). The weight model predicts future weight in kg, "
         "and the height model predicts future height in cm."
     ))
 
@@ -648,11 +742,55 @@ def generate_docx(diagrams: dict):
 
     _add_heading(doc, "9.3 Application Demo", 2)
     _add_para(doc, (
-        "The application provides three growth charts (weight, height, head circumference) powered by Recharts, "
-        "a detailed measurement table with percentile indicators, an alert panel, and an AI analysis button. "
-        "The LLM successfully generates contextually relevant growth interpretations, referencing WHO percentiles "
-        "and ML predictions without performing recalculations."
+        "The application provides an intuitive web interface with the following key screens:"
     ))
+
+    _add_heading(doc, "Dashboard — Growth Charts", 3)
+    _add_para(doc, (
+        "The main dashboard displays three interactive growth charts (weight, height, head circumference) "
+        "powered by Recharts. Each chart overlays the child's measurements against WHO percentile curves "
+        "(3rd, 15th, 50th, 85th, 97th) for immediate visual comparison."
+    ))
+    _add_para(doc, "[Screenshot: Growth charts dashboard with WHO percentile curves]",
+              size=10, italic=True)
+
+    _add_heading(doc, "Measurement Table", 3)
+    _add_para(doc, (
+        "A sortable table lists all growth records with columns for date, weight, height, head circumference, "
+        "z-scores, and percentiles. Status badges (Normal / Warning / Critical) provide quick anomaly detection."
+    ))
+    _add_para(doc, "[Screenshot: Measurement table with status badges and trends]",
+              size=10, italic=True)
+
+    _add_heading(doc, "Predictions Tab", 3)
+    _add_para(doc, (
+        "The predictions section shows current weight/height alongside 1-month and 3-month forecasts "
+        "generated by the Random Forest models. A confidence bar indicates prediction reliability, "
+        "and a history table tracks past predictions vs actual outcomes."
+    ))
+    _add_para(doc, "[Screenshot: Predictions tab with forecast cards and confidence bar]",
+              size=10, italic=True)
+
+    _add_heading(doc, "AI Chat Interface", 3)
+    _add_para(doc, (
+        "Parents can click 'Ask AI to Analyze' to receive a personalized natural-language interpretation "
+        "of their child's growth data. The analysis references WHO percentiles and ML predictions "
+        "without performing recalculations. A full chat history is maintained for follow-up questions."
+    ))
+    _add_para(doc, "[Screenshot: AI Chat interface with growth analysis response]",
+              size=10, italic=True)
+
+    _add_heading(doc, "Alert Panel", 3)
+    _add_para(doc, (
+        "The alert panel displays active warnings with severity indicators (Warning / Critical). "
+        "Alerts are auto-generated for abnormal z-scores, weight loss, or growth stagnation."
+    ))
+    _add_para(doc, "[Screenshot: Alert panel with severity-coded warnings]",
+              size=10, italic=True)
+
+    _add_para(doc, (
+        "All screenshots above will be replaced with actual application captures before final submission."
+    ), italic=True)
 
     # ── 10. DISCUSSION ──
     _add_heading(doc, "10. Discussion", 1)
@@ -753,14 +891,13 @@ def _add_slide_content(prs, title_text, content_lines, bullet=True):
 def _add_slide_image(prs, title_text, img_path):
     slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
     if title_text:
-        from pptx.util import Inches, Pt
-        txBox = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.8))
+        txBox = slide.shapes.add_textbox(PInches(0.5), PInches(0.3), PInches(9), PInches(0.8))
         tf = txBox.text_frame
         p = tf.paragraphs[0]
         p.text = title_text
-        p.font.size = Pt(28)
+        p.font.size = PPt(28)
         p.font.bold = True
-    slide.shapes.add_picture(str(img_path), Inches(1), Inches(1.2), Inches(8), Inches(4.5))
+    slide.shapes.add_picture(str(img_path), PInches(1), PInches(1.2), PInches(8), PInches(4.5))
     return slide
 
 def generate_pptx(diagrams: dict):
@@ -773,20 +910,20 @@ def generate_pptx(diagrams: dict):
 
     # Slide 2 — Problem
     _add_slide_content(prs, "Problem Statement", [
-        "• Manual plotting errors in growth charts → delayed intervention",
-        "• Fragmented growth records across systems",
-        "• No predictive insight — only historical data",
-        "• Limited accessibility for individual parents",
-        "• Raw numbers require medical knowledge to interpret",
+        "📉 Manual plotting errors in growth charts → delayed intervention",
+        "📁 Fragmented growth records across paper, clinics, and apps",
+        "🔮 No predictive insight — only historical data available",
+        "🔒 Limited accessibility for individual parents",
+        "📊 Raw numbers (z-scores, percentiles) require medical knowledge",
     ])
 
     # Slide 3 — Objectives
     _add_slide_content(prs, "Objectives", [
-        "1. Automate WHO z-score and percentile calculation",
-        "2. Generate real-time alerts for abnormal growth",
-        "3. Predict future weight and height with ML",
-        "4. Provide LLM-powered natural language analysis",
-        "5. Deliver intuitive web-based visualization",
+        "1️⃣  Automate WHO z-score and percentile calculation",
+        "2️⃣  Generate real-time alerts for abnormal growth",
+        "3️⃣  Predict future weight and height with ML (R² > 0.996)",
+        "4️⃣  Provide LLM-powered natural language analysis",
+        "5️⃣  Deliver intuitive web-based visualization",
     ])
 
     # Slide 4 — Architecture
@@ -797,28 +934,28 @@ def generate_pptx(diagrams: dict):
 
     # Slide 5 — Tech Stack
     _add_slide_content(prs, "Technology Stack", [
-        "• Backend: FastAPI • SQLAlchemy • Alembic",
-        "• Frontend: Next.js 16 • React 19 • Recharts • Zustand",
-        "• Database: SQLite (dev) / PostgreSQL (prod)",
-        "• ML: scikit-learn RandomForest • joblib • pandas",
-        "• LLM: Groq Cloud • Llama 3.1 8B",
-        "• Auth: JWT • python-jose • bcrypt",
-        "• Standards: WHO LMS method (8 reference tables)",
+        "⚙️  Backend: FastAPI · SQLAlchemy · Alembic",
+        "🌐  Frontend: Next.js 16 · React 19 · Recharts · Zustand",
+        "🗄️  Database: SQLite (dev) / PostgreSQL (prod)",
+        "🤖  ML: scikit-learn RandomForest · joblib · pandas",
+        "🧠  LLM: Groq Cloud · Llama 3.1 8B",
+        "🔐  Auth: JWT · python-jose · bcrypt",
+        "📏  Standards: WHO LMS method (4 ref tables × 2 sexes)",
     ])
 
     # Slide 6 — DB Architecture
     if "database.png" in diagrams:
-        _add_slide_image(prs, "Database Architecture (10 tables)", diagrams["database.png"])
+        _add_slide_image(prs, "Database Architecture (11 tables)", diagrams["database.png"])
     else:
         _add_slide_content(prs, "Database Architecture", ["users, children, growth_records", "alerts, conversations, chat_messages", "growth_predictions", "4 WHO reference tables (LMS parameters)"])
 
     # Slide 7 — WHO Standards
     _add_slide_content(prs, "WHO Growth Standards", [
         "• Based on Multicentre Growth Reference Study (MGRS)",
-        "• 8 reference tables: weight/age, length/age, weight/length, head/age",
+        "• 4 reference tables: weight/age, length/age, weight/length, head/age",
         "• Each table contains L (power), M (median), S (CV) parameters",
         "• Cover 0–24 months (weight, length, head) and 45–110 cm (weight/length)",
-        "• 412 total reference rows imported from official WHO CSV files",
+        "• 206 reference rows in DB (from WHO CSV files, both sexes)",
     ])
 
     # Slide 8 — Z-scores & Percentiles
@@ -835,24 +972,24 @@ def generate_pptx(diagrams: dict):
 
     # Slide 9 — Growth Analysis
     _add_slide_content(prs, "Growth Analysis Engine", [
-        "• Auto-triggered on POST/PUT growth record",
-        "• Step 1: Calculate age in months from DOB",
-        "• Step 2: Interpolate WHO LMS parameters",
-        "• Step 3: Compute z-scores (weight, height, head)",
-        "• Step 4: Derive percentiles from z-scores",
-        "• Step 5: Store results in growth_record table",
+        "⚡ Auto-triggered on POST / PUT growth record",
+        "1️⃣  Calculate age in months from date of birth",
+        "2️⃣  Interpolate WHO LMS parameters for exact age",
+        "3️⃣  Compute z-scores (weight, height, head)",
+        "4️⃣  Derive percentiles from z-scores (CDF Φ(Z))",
+        "5️⃣  Store results in growth_record table",
     ])
 
     # Slide 10 — Alert System
     _add_slide_content(prs, "Alert System", [
-        "Rule-based engine evaluating every new record:",
+        "⚙️ Rule-based engine evaluating every new record:",
         "",
-        "• |z-score| > 2 → Warning (monitor closely)",
-        "• |z-score| > 3 → Critical (consult pediatrician)",
-        "• Weight decrease > 0.1 kg → Weight loss alert",
-        "• 3+ consecutive flat measurements → Stagnation",
+        "🟡 |z-score| > 2     → Warning (monitor closely)",
+        "🔴 |z-score| > 3     → Critical (consult pediatrician)",
+        "⬇️ Weight decrease >0.1 kg → Weight loss alert",
+        "➡️ 3+ consecutive flat → Growth stagnation",
         "",
-        "Old active alerts auto-resolved before new evaluation",
+        "♻️ Old active alerts auto-resolved before new evaluation",
     ])
 
     # Slide 11 — ML Pipeline
@@ -860,7 +997,7 @@ def generate_pptx(diagrams: dict):
         _add_slide_image(prs, "Machine Learning Pipeline", diagrams["ml_pipeline.png"])
     else:
         _add_slide_content(prs, "Machine Learning Pipeline", [
-            "Dataset: 11,666 samples from 500 synthetic children (24 months each)",
+            f"Dataset: {TRAIN_SAMPLES:,} samples from 500 synthetic children (24 months each)",
             "Features: age, sex, current measurements, z-scores, percentiles, velocity",
             "Target: weight and height 1 month ahead (sliding window)",
             "Algorithm: RandomForestRegressor (300 trees, max_depth=15)",
@@ -869,35 +1006,40 @@ def generate_pptx(diagrams: dict):
 
     # Slide 12 — Prediction
     _add_slide_content(prs, "Prediction Workflow", [
-        "1. Load latest growth record for child",
-        "2. Build feature vector (15 features)",
-        "3. Predict weight & height at 1 month",
-        "4. Use predicted values as input for 3-month prediction",
-        "5. Compute confidence from tree variance / RMSE",
-        "6. Save to growth_predictions table",
-        "7. Return: weight_1mo, weight_3mo, height_1mo, height_3mo, confidence",
+        "1️⃣  Load latest growth record for child",
+        "2️⃣  Build feature vector (15 features: age, sex, measures, z-scores, velocity)",
+        "3️⃣  Predict weight & height at 1 month",
+        "4️⃣  Iterative: use predicted values → 2nd pass for 3-month forecast",
+        "5️⃣  Compute confidence score (tree std / RMSE, clamped [0,1])",
+        "6️⃣  Save to growth_predictions table",
+        "7️⃣  Return: weight_1mo · weight_3mo · height_1mo · height_3mo · confidence",
     ])
 
     # Slide 13 — LLM
     _add_slide_content(prs, "LLM Integration", [
-        "• Model: Groq Llama 3.1 8B (fast inference, high quality)",
-        "• Dynamic system prompt includes:",
-        "    — Child profile (age, sex, birth measurements)",
-        "    — Latest growth data (weight, height, z-scores, percentiles)",
-        "    — Active alerts",
-        "    — ML predictions (future weight & height)",
-        "• LLM strictly prohibited from recalculating medical metrics",
-        "• Role: interpret, contextualize, communicate in natural language",
+        "🧠 Model: Groq Llama 3.1 8B (fast inference, high quality)",
+        "",
+        "📄 Dynamic system prompt includes:",
+        "  👶 Child profile (age, sex, birth measurements)",
+        "  📊 Latest growth data (weight, height, z-scores, percentiles)",
+        "  ⚠️  Active alerts",
+        "  🔮 ML predictions (future weight & height at 1mo / 3mo)",
+        "",
+        "🚫 LLM strictly prohibited from recalculating medical metrics",
+        "💬 Role: interpret, contextualize, communicate in plain language",
     ])
 
-    # Slide 14 — Demo
-    _add_slide_content(prs, "Application Demo", [
-        "• Three growth charts (weight, height, head circumference)",
-        "• Measurement table with trends, percentiles, and status badges",
-        "• Alert panel with severity indicators (warning / critical)",
-        "• 'Ask AI to Analyze' button → LLM growth interpretation",
-        "• Predictions tab with current vs projected values + confidence bar",
-        "• Chat interface for ongoing AI-assisted conversations",
+    # Slide 14 — Demo Screenshots Placeholder
+    _add_slide_content(prs, "Application Screenshots", [
+        "📷 Screenshots to be inserted here:",
+        "",
+        "1. Login / Register page",
+        "2. Dashboard with growth charts + WHO percentile curves",
+        "3. Measurement entry form",
+        "4. Measurement table with status badges",
+        "5. Predictions tab with forecast cards + confidence bar",
+        "6. AI Chat interface with growth analysis response",
+        "7. Alert panel with severity-coded warnings",
     ])
 
     # Slide 15 — Results
@@ -916,44 +1058,45 @@ def generate_pptx(diagrams: dict):
 
     # Slide 16 — Strengths
     _add_slide_content(prs, "Strengths", [
-        "✓ Full WHO standards integration with auto-calculation",
-        "✓ High-accuracy ML predictions (R² > 0.996)",
-        "✓ Real-time multi-type alert system",
-        "✓ LLM analysis that translates clinical data to plain language",
-        "✓ Modern, responsive web interface",
-        "✓ Modular architecture (FastAPI + services)",
+        "✅ Full WHO standards integration with auto-calculation",
+        "✅ High-accuracy ML predictions (R² > 0.996)",
+        "✅ Real-time multi-type alert system",
+        "✅ LLM analysis that translates clinical data to plain language",
+        "✅ Modern, responsive web interface (desktop + mobile)",
+        "✅ Modular architecture (FastAPI + services + ORM)",
+        "✅ Synthetic data generation for privacy-safe development",
     ])
 
     # Slide 17 — Limitations
     _add_slide_content(prs, "Limitations", [
-        "✗ ML models trained on synthetic data (not real patients)",
-        "✗ Prediction horizon limited to 3 months",
-        "✗ Static alert thresholds (may miss individual patterns)",
-        "✗ LLM quality depends on base model and prompt design",
-        "✗ No native mobile application",
+        "❌ ML models trained on synthetic data (not real patients yet)",
+        "❌ Prediction horizon limited to 3 months",
+        "❌ Static alert thresholds (may miss individual patterns)",
+        "❌ LLM quality depends on base model and prompt design",
+        "❌ No native mobile application (web-only with responsive design)",
     ])
 
     # Slide 18 — Future
     _add_slide_content(prs, "Future Work", [
-        "• Transfer learning on real clinical data",
-        "• Extended prediction: time series models up to 12 months",
-        "• Personalized alert thresholds per child",
-        "• Mobile app (React Native / Flutter)",
-        "• Multi-language LLM support",
-        "• EHR system integration",
+        "🔬 Transfer learning on real clinical data",
+        "📈 Extended prediction: time series models up to 12 months",
+        "🎯 Personalized alert thresholds per child trajectory",
+        "📱 Mobile app (React Native / Flutter)",
+        "🌍 Multi-language LLM support",
+        "🏥 EHR system integration",
     ])
 
     # Slide 19 — Conclusion
     _add_slide_content(prs, "Conclusion", [
         "BabyGrowth AI successfully delivers:",
         "",
-        "✓ WHO-based growth monitoring (z-scores & percentiles)",
-        "✓ Automatic anomaly detection and alerting",
-        f"✓ Growth prediction with R² > 0.996",
-        "✓ LLM-powered personalized guidance",
-        "✓ Production-ready web platform",
+        "📏 WHO-based growth monitoring (z-scores & percentiles)",
+        "⚠️ Automatic anomaly detection and alerting",
+        f"🔮 Growth prediction with R² > 0.996",
+        "💬 LLM-powered personalized guidance",
+        "🌐 Production-ready web platform",
         "",
-        f"Built with: FastAPI • Next.js • Random Forest • Groq LLM",
+        "⚡ Built with: FastAPI · Next.js · Random Forest · Groq LLM",
     ])
 
     # Slide 20 — Questions
