@@ -72,16 +72,16 @@ export function Sidebar() {
             'flex items-center gap-2.5 transition-opacity duration-300',
             !isOpen && 'opacity-0 hidden'
           )}>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-sm flex-shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-sm flex-shrink-0">
               BG
             </div>
             <div>
-              <h1 className="text-sm font-bold text-sidebar-foreground leading-tight">BabyGrowth</h1>
-              <p className="text-xs text-muted-foreground leading-tight">AI Powered</p>
+              <h1 className="text-md font-bold text-sidebar-foreground leading-tight">BabyGrowth</h1>
+              <p className="text-sm text-muted-foreground leading-tight">AI Powered</p>
             </div>
           </div>
           {!isOpen && (
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-sm flex-shrink-0 mx-auto">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-sm flex-shrink-0 mx-auto">
               BG
             </div>
           )}
