@@ -29,7 +29,6 @@ backend/models/
 # Jupyter
 .ipynb_checkpoints/
 
-backend/seed_data.py
 
 # IDE
 .vscode/
