@@ -28,7 +28,6 @@ backend/models/
 
 # Jupyter
 .ipynb_checkpoints/
-notebooks/
 
 # Generation scripts
 backend/scripts/generate_*
